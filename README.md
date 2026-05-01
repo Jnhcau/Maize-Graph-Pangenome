@@ -36,20 +36,21 @@ conda activate maizegp
 
 This section describes how to use the MaizeGP graph (`48pan.gfa.gz`) to genotype structural variants (SVs) in resequencing populations.
 
+The following example uses Zheng58 as a representative sample.
 ```
 mkdir -p index gam pack vcf
 vg autoindex --workflow giraffe --gfa graph/48pan.gfa.gz --prefix index/maizegp_48pan --threads 32
 vg snarls index/maizegp_48pan.xg > index/maizegp_48pan.snarls
 
-vg giraffe -Z index/maizegp_48pan.gbz -m index/maizegp_48pan.min -d index/maizegp_48pan.dist -f reads/sample1_R1.fq.gz -f reads/sample1_R2.fq.gz -t 32 > gam/sample1.gam
-vg stats -a gam/sample1.gam > gam/sample1.gam.stat
+vg giraffe -Z index/maizegp_48pan.gbz -m index/maizegp_48pan.min -d index/maizegp_48pan.dist -f reads/Zheng58_R1.fq.gz -f reads/Zheng58_R2.fq.gz -t 32 > gam/Zheng58.gam
+vg stats -a gam/Zheng58.gam > gam/Zheng58.gam.stat
 
-vg pack -x index/maizegp_48pan.xg -g gam/sample1.gam -Q 5 -o pack/sample1.pack -t 32
+vg pack -x index/maizegp_48pan.xg -g gam/Zheng58.gam -Q 5 -o pack/Zheng58.pack -t 32
 
-vg call -s index/maizegp_48pan.xg -r index/maizegp_48pan.snarls -k pack/sample1.pack -s sample1 -a -A -t 32 > vcf/sample1.vcf
+vg call -s index/maizegp_48pan.xg -r index/maizegp_48pan.snarls -k pack/Zheng58.pack -s Zheng58 -a -A -t 32 > vcf/Zheng58.vcf
 
-bgzip -f vcf/sample1.vcf
-bcftools index -c vcf/sample1.vcf.gz
+bgzip -f vcf/Zheng58.vcf
+bcftools index -c vcf/Zheng58.vcf.gz
 
 ls vcf/*.vcf.gz > vcf.list
 bcftools merge -l vcf.list -Oz -o maizegp.population.sv.vcf.gz
@@ -69,7 +70,7 @@ bcftools index -c maizegp.population.sv.filtered.vcf.gz
 This section shows how to map a new assembly to the pangenome graph and extract SV information.
 
 ```
-minigraph -cxasm --call -t 30 pangenome.sv.gfa.gz sample.fa > sample.bed
+minigraph -cxasm --call -t 30 pangenome.sv.gfa.gz Zheng58.fa > Zheng58.bed
 
 paste *.bed | ./k8 mgutils.js merge -s <(./agc listset maizepan) - | gzip > maizepan.sv.bed.gz
 ./k8 mgutils-es6.js merge2vcf -r0 maizepan.sv.bed.gz > maizepan.sv.vcf
@@ -88,9 +89,9 @@ minigraph -cxggs -t 16 48pan.gfa NEW.fa > NEW.gfa
 This section demonstrates how to genotype known SVs using short-read data.
 
 ```
-idxdepth -b sample.bam -r B73NAMV5.fa -o sample.txt
+idxdepth -b Zheng58.bam -r B73NAMV5.fa -o Zheng58.txt
 
-/opt/paragraph/bin/multigrmpy.py -i 48pansv.vcf.gz -m sample.txt -r B73NAMV5.fa -o sample --threads 128
+/opt/paragraph/bin/multigrmpy.py -i 48pansv.vcf.gz -m Zheng58.txt -r B73NAMV5.fa -o Zheng58 --threads 128
 
 ls *.vcf.gz > vcf.list
 bcftools merge -l vcf.list -Oz -o maizegp.population.sv.vcf.gz
